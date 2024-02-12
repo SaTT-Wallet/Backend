@@ -82,7 +82,7 @@ passport.deserializeUser(async function (id, cb) {
     cb(null, user)
 })
 
-const handleSocialMediaSignin = async (req,profile,query, cb) => {
+const handleSocialMediaSignin = async (req, profile, query, cb) => {
     try {
         var date = Math.floor(Date.now() / 1000) + 86400
         var user = await User.findOne(query).lean()
@@ -100,25 +100,29 @@ const handleSocialMediaSignin = async (req,profile,query, cb) => {
                 profile.name.givenName,
                 profile.name.familyName
             )
-    
+
             let user = await new User(createdUser).save()
             createdUser._id = user._id
             let token = generateAccessToken({ _id: createdUser._id })
-            return cb(null, { id: createdUser._id, token: token, expires_in: date })
+            return cb(null, {
+                id: createdUser._id,
+                token: token,
+                expires_in: date,
+            })
         } else {
             var validAuth = await isBlocked(user, true)
             const response =
                 !validAuth.res && validAuth.auth
                     ? {
-                        id: user._id,
-                        token: generateAccessToken({ _id: user._id }),
-                        expires_in: date,
-                    }
+                          id: user._id,
+                          token: generateAccessToken({ _id: user._id }),
+                          expires_in: date,
+                      }
                     : {
-                        error: true,
-                        message: `account_locked:${user.date_locked}`,
-                        blockedDate: user.date_locked,
-                    }
+                          error: true,
+                          message: `account_locked:${user.date_locked}`,
+                          blockedDate: user.date_locked,
+                      }
 
             if (response.error) {
                 return cb(response)
@@ -130,7 +134,7 @@ const handleSocialMediaSignin = async (req,profile,query, cb) => {
             )
 
             cb(null, response)
-    }
+        }
     } catch (err) {
         console.error('handleSocialMediaSignin', err)
     } finally {
@@ -400,7 +404,7 @@ exports.sattConnect = async (req, res, next) => {
 /*
  * begin signin with facebook strategy
  */
-exports.facebookAuthSignin = async (req,profile, cb) => {
+exports.facebookAuthSignin = async (req, profile, cb) => {
     await handleSocialMediaSignin(
         req,
         profile,
@@ -415,8 +419,8 @@ exports.facebookAuthSignin = async (req,profile, cb) => {
 /*
  *begin signin with google strategy
  */
-exports.googleAuthSignin = async (req,profile, cb) => {
-    await handleSocialMediaSignin(req,profile,{ idOnSn2: profile.id }, cb)
+exports.googleAuthSignin = async (req, profile, cb) => {
+    await handleSocialMediaSignin(req, profile, { idOnSn2: profile.id }, cb)
 }
 /*
  *end signin with google strategy
@@ -562,7 +566,7 @@ exports.googleAuthSignup = async (req, profile, cb) => {
 
     if (user && wallet) {
         // return cb('account_already_used&idSn=' + user.idSn)
-        await handleSocialMediaSignin(req,profile,{ idOnSn2: profile.id }, cb)
+        await handleSocialMediaSignin(req, profile, { idOnSn2: profile.id }, cb)
     } else {
         let createdUser = createUser(
             1,
@@ -614,7 +618,7 @@ exports.signup_telegram_function = async (req, profile, cb) => {
         // return cb('account_already_used&idSn=' + user.idSn)
         // let token = generateAccessToken(user)
         // return cb(null, { id: user._id, token: token, expires_in: date })
-        await handleSocialMediaSignin(req,profile,{ idOnSn3: profile.id }, cb)
+        await handleSocialMediaSignin(req, profile, { idOnSn3: profile.id }, cb)
     } else {
         let createdUser = createUser(
             1,
@@ -643,7 +647,7 @@ exports.signup_telegram_function = async (req, profile, cb) => {
 begin signin with telegram strategy
 */
 exports.signin_telegram_function = async (req, profile, cb) => {
-    await handleSocialMediaSignin(req, profile,{ idOnSn3: profile.id }, cb)
+    await handleSocialMediaSignin(req, profile, { idOnSn3: profile.id }, cb)
 }
 exports.telegramConnection = (req, res) => {
     try {
@@ -777,11 +781,13 @@ exports.addTwitterChannel = async (req, res) => {
 
     if (await TwitterProfile.exists({ UserId: user_id, twitter_id: id })) {
         return res.redirect(
-            process.env.BASED_URL +
-                redirect +
-                '?message=' +
-                'account exist' +
-                '&sn=twitter'
+            req.query.state.includes('frontendApp=metamask')
+                ? process.env.METAMASK_BASED_URL
+                : process.env.BASED_URL +
+                      redirect +
+                      '?message=' +
+                      'account exist' +
+                      '&sn=twitter'
         )
     } else {
         let profile = { _json: {} }
@@ -799,11 +805,13 @@ exports.addTwitterChannel = async (req, res) => {
     }
     // return cb(null, { id: user_id })
     res.redirect(
-        process.env.BASED_URL +
-            redirect +
-            '?message=' +
-            'account_linked_with_success' +
-            '&sn=twitter'
+        req.query.state.includes('frontendApp=metamask')
+            ? process.env.METAMASK_BASED_URL
+            : process.env.BASED_URL +
+                  redirect +
+                  '?message=' +
+                  'account_linked_with_success' +
+                  '&sn=twitter'
     )
 }
 /*
