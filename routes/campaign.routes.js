@@ -46,6 +46,8 @@ const {
     campaignsPictureUpload,
     generateBrief,
     externalAddKits,
+    artheraApproval,
+    artheraAllow,
 } = require('../controllers/campaign.controller')
 const {
     evmApprovalValidation,
@@ -72,6 +74,73 @@ const {
     titleCheckValidation,
 } = require('../middleware/campaignValidator.middleware')
 const { verifyAuth } = require('../middleware/passport.middleware')
+
+/**
+ * @swagger
+ * /campaign/arthera/approval:
+ *   post:
+ *     tags:
+ *     - "campaign"
+ *     summary: ARTHERA aprroval
+ *     description: Approve the smart contract ARTHERA to interact with user wallet
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               tokenAddress:
+ *                 type: string
+ *               campaignAddress:
+ *                 type: string
+ *     responses:
+ *       "200":
+ *          description: code,<br>message:"success"
+ *       "401":
+ *          description: code,<br>error:"Unauthorized"
+ *       "500":
+ *          description: error:"error"
+ */
+router.post(
+    '/arthera/approval',
+    verifyAuth,
+    evmApprovalValidation,
+    artheraApproval
+)
+
+/**
+ * @swagger
+ * /campaign/arthera/allow:
+ *   post:
+ *     tags:
+ *     - "campaign"
+ *     summary: ARTHERA allow
+ *     description: Allow user wallet to interact the smart contract ARTHERA
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:      # Request body contents
+ *             type: object
+ *             properties:
+ *               campaignAddress:
+ *                 type: string
+ *               amount:
+ *                 type: string
+ *               pass:
+ *                 type: string
+ *               tokenAddress:
+ *                 type: string
+ *     responses:
+ *       "200":
+ *          description: code,<br>message:"success"
+ *       "401":
+ *          description: code,<br>error:"unauthorized"
+ *       "500":
+ *          description: error:"error"
+ */
+router.post('/arthera/allow', verifyAuth, artheraAllow)
 
 /**
  * @swagger

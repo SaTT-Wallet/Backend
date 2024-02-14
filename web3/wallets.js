@@ -7,6 +7,7 @@ const {
     bttConnexion,
     tronConnexion,
     webTronInstance,
+    artheraConnexion,
 } = require('../blockchainConnexion')
 const {
     getWeb3Connection,
@@ -15,7 +16,7 @@ const {
     networkProvidersOptions,
 } = require('./web3-connection')
 var cache = require('memory-cache')
-const { ethers } = require('ethers');
+const { ethers } = require('ethers')
 
 var rp = require('axios')
 const Big = require('big.js')
@@ -174,6 +175,24 @@ exports.unlockBsc = async (req, res) => {
     }
 }
 
+exports.unlockArthera = async (req, res) => {
+    try {
+        let UserId = req.user._id
+        let pass = req.body.pass
+        let account = await Wallet.findOne({ UserId })
+        let Web3ARTHERA = await artheraConnexion()
+        Web3ARTHERA.eth.accounts.wallet.decrypt([account.keystore], pass)
+        return { address: '0x' + account.keystore.address, Web3ARTHERA }
+    } catch (err) {
+        if (!!res && res.length > 0) {
+            res.status(500).send({
+                code: 500,
+                error: err.message ? err.message : err.error,
+            })
+        }
+    }
+}
+
 exports.lockBSC = async (credentials) => {
     credentials.Web3BEP20.eth.accounts.wallet.remove(credentials.address)
 }
@@ -296,14 +315,21 @@ exports.getAccountV2 = async (req, res) => {
             account?.tronAddress
         //TODO: redundant code here we can get rid of it and pass the cred as parma to this function
 
-        let [Web3ETH, Web3BEP20, Web3POLYGON, web3UrlBTT, tronWeb] =
-            await Promise.all([
-                erc20Connexion(),
-                bep20Connexion(),
-                polygonConnexion(),
-                bttConnexion(),
-                webTronInstance(),
-            ])
+        let [
+            Web3ETH,
+            Web3BEP20,
+            Web3POLYGON,
+            web3UrlBTT,
+            tronWeb,
+            web3Arthera,
+        ] = await Promise.all([
+            erc20Connexion(),
+            bep20Connexion(),
+            polygonConnexion(),
+            bttConnexion(),
+            webTronInstance(),
+            artheraConnexion(),
+        ])
 
         let contractSatt = null
         if (Web3ETH) {
@@ -332,6 +358,7 @@ exports.getAccountV2 = async (req, res) => {
             btt_balance,
             trx_balance,
             satt_balance,
+            aa_balance,
         ] = await Promise.all([
             Web3ETH?.eth.getBalance(address),
             Web3BEP20?.eth.getBalance(address),
@@ -339,6 +366,7 @@ exports.getAccountV2 = async (req, res) => {
             web3UrlBTT?.eth.getBalance(address),
             tronPromise,
             sattPromise,
+            web3Arthera?.eth.getBalance(address),
         ])
         let totalBalance =
             ether_balance +
@@ -346,7 +374,8 @@ exports.getAccountV2 = async (req, res) => {
             polygon_balance +
             btt_balance +
             trx_balance +
-            satt_balance
+            satt_balance +
+            aa_balance
         var result = {
             btc: account.btc ? btcAddress : '',
             address: address,
@@ -360,6 +389,7 @@ exports.getAccountV2 = async (req, res) => {
             btt_balance: btt_balance,
             trx_balance: trx_balance,
             version: account.mnemo ? 2 : 1,
+            aa_balance: aa_balance,
             totalBalance: totalBalance,
         }
         result.btc_balance = 0
@@ -411,14 +441,21 @@ exports.getAccount = async (req, res) => {
 
         //TODO: redundant code here we can get rid of it and pass the cred as parma to this function
 
-        let [Web3ETH, Web3BEP20, Web3POLYGON, web3UrlBTT, tronWeb] =
-            await Promise.all([
-                erc20Connexion(),
-                bep20Connexion(),
-                polygonConnexion(),
-                bttConnexion(),
-                webTronInstance(),
-            ])
+        let [
+            Web3ETH,
+            Web3BEP20,
+            Web3POLYGON,
+            web3UrlBTT,
+            tronWeb,
+            web3Arthera,
+        ] = await Promise.all([
+            erc20Connexion(),
+            bep20Connexion(),
+            polygonConnexion(),
+            bttConnexion(),
+            webTronInstance(),
+            artheraConnexion(),
+        ])
 
         const contractSatt = Web3ETH
             ? new Web3ETH.eth.Contract(
@@ -440,6 +477,7 @@ exports.getAccount = async (req, res) => {
             btt_balance,
             trx_balance,
             satt_balance,
+            aa_balance,
         ] = await Promise.all([
             Web3ETH?.eth.getBalance(address),
             Web3BEP20?.eth.getBalance(address),
@@ -447,6 +485,7 @@ exports.getAccount = async (req, res) => {
             web3UrlBTT?.eth.getBalance(address),
             tronPromise,
             sattPromise,
+            web3Arthera?.eth.getBalance(address),
         ])
 
         var result = {
@@ -461,8 +500,10 @@ exports.getAccount = async (req, res) => {
             satt_balance: satt_balance,
             btt_balance: btt_balance,
             trx_balance: trx_balance,
+            aa_balance: aa_balance,
             version: account.mnemo ? 2 : 1,
         }
+
         result.btc_balance = 0
         if (process.env.NODE_ENV === 'mainnet' && btcAddress) {
             result.btc = btcAddress
@@ -558,7 +599,6 @@ const getNetworkByToken = async (idCrypto) => {
                         const result = await rp.request(options)
                         results.push(result)
                     } catch (err) {
-                        
                         // Handle the error as needed, e.g., retry or skip
                     }
                 })
@@ -823,7 +863,6 @@ exports.getallCryptoMarket = async (startVariable) => {
                     const response = await rp(options)
                     result.push(response)
                 } catch (error) {
-                    
                     throw new Error('Error fetching prices')
                 }
             }
@@ -1025,51 +1064,54 @@ exports.getBalance = async (Web3, token, address) => {
     }
 }
 
-
-
 exports.getBalanceExternalWallet = async (req, res) => {
     try {
-        const { token, walletAddress } = req.body;
+        const { token, walletAddress } = req.body
 
         const networks = [
-            { name: 'ethereum', providerUrl: process.env.WEB3_URL},
+            { name: 'ethereum', providerUrl: process.env.WEB3_URL },
             { name: 'bsc', providerUrl: process.env.WEB3_URL_BEP20 },
             { name: 'polygon', providerUrl: process.env.WEB3_URL_POLYGON },
-            { name: 'bttc', providerUrl: process.env.WEB3_URL_BTT }, 
-        ];
+            { name: 'bttc', providerUrl: process.env.WEB3_URL_BTT },
+        ]
 
-        let balanceResponse;
+        let balanceResponse
 
         for (const networkObj of networks) {
             try {
-                const provider = new ethers.providers.JsonRpcProvider(networkObj.providerUrl);
+                const provider = new ethers.providers.JsonRpcProvider(
+                    networkObj.providerUrl
+                )
                 const contract = new ethers.Contract(
                     token,
                     ['function balanceOf(address) view returns (uint256)'],
                     provider
-                );
+                )
 
-                const balance = await contract.balanceOf(walletAddress);
-                const formattedBalance = ethers.utils.formatUnits(balance, 18); 
-                balanceResponse = { balance: formattedBalance, network: networkObj.name };
-                res.json(balanceResponse);
-                return; 
+                const balance = await contract.balanceOf(walletAddress)
+                const formattedBalance = ethers.utils.formatUnits(balance, 18)
+                balanceResponse = {
+                    balance: formattedBalance,
+                    network: networkObj.name,
+                }
+                res.json(balanceResponse)
+                return
             } catch (error) {
-                console.error(`Error fetching balance for ${networkObj.name}: ${error.message}`);
+                console.error(
+                    `Error fetching balance for ${networkObj.name}: ${error.message}`
+                )
             }
         }
 
         res.status(500).json({
             error: 'An error occurred while fetching the balance for all networks.',
-        });
+        })
     } catch (err) {
         res.status(500).json({
             error: 'An error occurred while setting up network connections.',
-        });
+        })
     }
-};
-
-
+}
 
 exports.multicall = async (tokens, addresses, network, web3) => {
     try {
@@ -1109,6 +1151,8 @@ exports.getWeb3Instance = async (network) => {
             return await bttConnexion()
         case 'tron':
             return await webTronInstance()
+        case 'arthera':
+            return await artheraConnexion()
         default:
             throw new Error(`Invalid network: ${network}`)
     }
@@ -1132,6 +1176,21 @@ exports.getNativeBalance = async (web3Instance, walletAddress, network) => {
         const balanceWei = await web3Instance.eth.getBalance(walletAddress)
         const balanceFormatted = web3Instance.utils.fromWei(balanceWei, 'ether')
         return balanceFormatted
+    }
+}
+exports.getArtheraBalance = async (token, address, isAA) => {
+    try {
+        const web3Arthera = await artheraConnexion()
+        if (isAA) {
+            let amount = await web3Arthera.eth.getBalance(address[0])
+            return amount.toString()
+        }
+        //TODO verify the address because it doesnt work
+        let ctr = await web3Arthera.contract(TronConstant.token.abi, token)
+        let amount = await ctr.balanceOf(address).call()
+        return amount.toString()
+    } catch (err) {
+        return '0'
     }
 }
 
@@ -1194,7 +1253,6 @@ exports.getListCryptoByUid = async (req, res) => {
         delete ret.version
         delete ret.tronAddress
         delete ret.tronValue
-
         // => userTokens : token ajoutés manuellemnt
         let userTokens = await CustomToken.find({
             sn_users: { $in: [id] },
@@ -1288,6 +1346,17 @@ exports.getListCryptoByUid = async (req, res) => {
                         balanceTronList.push(tronBalance)
                     }
                     balancesBynetwork[T_network] = balanceTronList
+                } else if (T_network == 'ARTHERA') {
+                    const balanceArtheraList = []
+                    for (let token of tokensInfosByNetwork[T_network]) {
+                        const aaBalance = await this.getArtheraBalance(
+                            token.contract,
+                            addressesByNetwork[T_network],
+                            token.key === 'AA' ? true : false
+                        )
+                        balanceArtheraList.push(aaBalance)
+                    }
+                    balancesBynetwork[T_network] = balanceArtheraList
                 } else {
                     balancesBynetwork[T_network] = await this.multicall(
                         tokensByNetwork[T_network],
@@ -1342,6 +1411,7 @@ exports.getListCryptoByUid = async (req, res) => {
         delete ret.matic_balance
         delete ret.btt_balance
         delete ret.trx_balance
+        delete ret.aa_balance
         delete ret.totalBalance
 
         for (const Amount in ret) {
@@ -1400,7 +1470,7 @@ exports.getBalanceByUid = async (req, res) => {
             TRX,
             MATIC,
             SATT_TRON,
-
+            AA,
             SATT_BTT,
             ...token_info
         } = Tokens

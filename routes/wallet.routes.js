@@ -27,6 +27,7 @@ const {
     addTronWalletToExistingAccount,
     gasPriceTrx,
     getGasPrice,
+    gasPriceAA,
     countWallets,
     allwallets,
     createNewWalletV2,
@@ -40,13 +41,10 @@ const {
     globalCryptoMarketInfo,
     getNftByAddress,
     getBalanceByToken,
-    getallCrypto
+    getallCrypto,
 } = require('../controllers/wallet.controller')
 
-
-const {
-    getBalanceExternalWallet
-} = require('../web3/wallets')
+const { getBalanceExternalWallet } = require('../web3/wallets')
 const {
     verifyAuth,
     verifyAuthGetQuote,
@@ -67,6 +65,7 @@ const {
     migrationWalletValidation,
     cryptoListValidation,
 } = require('../middleware/walletValidator.middleware')
+const { artheraConnexion } = require('../blockchainConnexion')
 
 /**
  * @swagger
@@ -228,6 +227,25 @@ router.get('/TrxGasPrice', gasPriceTrx)
 
 /**
  * @swagger
+ * /wallet/ArtheraGasPrice:
+ *   get:
+ *     tags:
+ *     - "wallets"
+ *     summary: get arthera gas price
+ *     description: get arthera gas price <br> without access_token
+ *     produces:
+ *       - application/json
+ *     responses:
+ *       "200":
+ *          description: code,<br>message:"success"
+ *       "500":
+ *          description: error:"error"
+ */
+
+router.get('/ArtheraGasPrice', gasPriceAA)
+
+/**
+ * @swagger
  * /wallet/polygonGasPrice:
  *   get:
  *     tags:
@@ -280,7 +298,6 @@ router.get('/globalCryptoMarketInfo', globalCryptoMarketInfo)
  *          description: error:"error"
  */
 router.get('/cryptoDetails', cryptoDetails)
-
 
 /**
  * @swagger
@@ -437,19 +454,18 @@ router.get('/Erc20GasPrice', gasPriceErc20)
 router.post(
     '/checkWalletToken',
     (req, res, next) => {
-        console.log('Executing verifyAuth middleware');
-        verifyAuth(req, res, next);
+        console.log('Executing verifyAuth middleware')
+        verifyAuth(req, res, next)
     },
     (req, res, next) => {
-        console.log('Executing checkTokenValidation middleware');
-        checkTokenValidation(req, res, next);
+        console.log('Executing checkTokenValidation middleware')
+        checkTokenValidation(req, res, next)
     },
     (req, res) => {
-        console.log('Executing checkWalletToken route handler');
-        checkWalletToken(req, res);
+        console.log('Executing checkWalletToken route handler')
+        checkWalletToken(req, res)
     }
-);
-
+)
 
 /**
  * @swagger
@@ -729,7 +745,6 @@ router.post(
     createNewWalletV2
 )
 
-
 /**
  * @swagger
  * /wallet/getBalanceExternalWallet:
@@ -756,11 +771,7 @@ router.post(
  *       "500":
  *          description: code,<br>error:"error"
  */
-router.post(
-    '/getBalanceExternalWallet',
-    getBalanceExternalWallet
-)
-
+router.post('/getBalanceExternalWallet', getBalanceExternalWallet)
 
 /**
  * @swagger
@@ -908,20 +919,29 @@ router.post(
     exportKeyStore
 )
 
-router.post('/code-export-keystore', verifyAuth, getCodeKeyStoreValidation ,getCodeKeyStore)
+router.post(
+    '/code-export-keystore',
+    verifyAuth,
+    getCodeKeyStoreValidation,
+    getCodeKeyStore
+)
 
+router.post(
+    '/export-keystore',
+    verifyAuth,
+    exportKeyStoreValidation,
+    exportKeyStore
+)
 
+router.post('/export-keystore-mobile', verifyAuth, exportKeyStoreMobile)
 
-router.post('/export-keystore', verifyAuth, exportKeyStoreValidation ,exportKeyStore)
-
-
-router.post('/export-keystore-mobile', verifyAuth ,exportKeyStoreMobile)
-
-
-router.get('/nfts/:address', checkEVMValidation,getNftByAddress)
-
-
+router.get('/nfts/:address', checkEVMValidation, getNftByAddress)
 
 router.post('/getBalance', verifyAuth, getBalanceByToken)
+
+router.get('/arthera', async (req, res) => {
+    const result = await artheraConnexion()
+    console.log({ result })
+})
 
 module.exports = router

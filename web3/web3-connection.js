@@ -5,6 +5,7 @@ const {
     Bep20NetworkConstant,
     PolygonNetworkConstant,
     BttNetworkConstant,
+    ArtheraNetworkConstant,
 } = require('../conf/const')
 
 const options = {
@@ -35,6 +36,7 @@ networkProviders[Erc20NetworkConstant] = process.env.WEB3_URL
 networkProviders[Bep20NetworkConstant] = process.env.WEB3_URL_BEP20
 networkProviders[PolygonNetworkConstant] = process.env.WEB3_URL_POLYGON
 networkProviders[BttNetworkConstant] = process.env.WEB3_URL_BTT
+networkProviders[ArtheraNetworkConstant] = process.env.WEB3_URL_ARTHERA
 
 const networkProvidersOptions = {}
 
@@ -42,6 +44,7 @@ networkProvidersOptions[Erc20NetworkConstant] = options
 networkProvidersOptions[Bep20NetworkConstant] = options
 networkProvidersOptions[PolygonNetworkConstant] = options
 networkProvidersOptions[BttNetworkConstant] = options
+networkProvidersOptions[ArtheraNetworkConstant] = options
 
 const getWeb3Connection = function (providerUrl, providerOptions) {
     return new Web3(getHttpProvider(providerUrl, providerOptions))

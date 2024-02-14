@@ -7,6 +7,7 @@ const {
     polygonConnexion,
     bttConnexion,
     webTronInstance,
+    artheraConnexion,
 } = require('../blockchainConnexion')
 const {
     web3UrlBep20,
@@ -16,9 +17,7 @@ const {
     CampaignConstants,
     OracleConstants,
 } = require('../conf/const')
-const {
-    Campaigns,
-} = require('../model/index')
+const { Campaigns } = require('../model/index')
 
 const { wrapNative, getWalletTron, unWrapNative } = require('./wallets')
 
@@ -36,8 +35,8 @@ const networks = [
     { name: 'ERC20', providerUrl: process.env.WEB3_URL },
     { name: 'BEP20', providerUrl: process.env.WEB3_URL_BEP20 },
     { name: 'POLYGON', providerUrl: process.env.WEB3_URL_POLYGON },
-    { name: 'BTTC', providerUrl: process.env.WEB3_URL_BTT }, 
-];
+    { name: 'BTTC', providerUrl: process.env.WEB3_URL_BTT },
+]
 
 const { getHttpProvider, networkProviders } = require('../web3/web3-connection')
 const Web3 = require('web3')
@@ -87,6 +86,24 @@ exports.unlock = async (req, res) => {
             code: 500,
             error: err.message ? err.message : err.error,
         })
+    }
+}
+
+exports.unlockArthera = async (req, res) => {
+    try {
+        let UserId = req.user._id
+        let pass = req.body.pass
+        let account = await Wallet.findOne({ UserId })
+        let Web3ARTHERA = await artheraConnexion()
+        Web3ARTHERA.eth.accounts.wallet.decrypt([account.keystore], pass)
+        return { address: '0x' + account.keystore.address, Web3ARTHERA }
+    } catch (err) {
+        if (!!res && res.length > 0) {
+            res.status(500).send({
+                code: 500,
+                error: err.message ? err.message : err.error,
+            })
+        }
     }
 }
 //unlock networks
@@ -569,6 +586,17 @@ exports.createBountiesCampaign = async (
         })
     }
 }
+exports.artheraApprove = async (token, address, spender) => {
+    try {
+        if (this.isNativeAddr(token)) token = wrapConstants['ARTHERA'].address
+        let Web3Arthera = await artheraConnexion()
+        var contract = new Web3Arthera.eth.Contract(Constants.token.abi, token)
+        var amount = await contract.methods.allowance(address, spender).call()
+        return { amount: amount.toString() }
+    } catch (err) {
+        return { amount: '0' }
+    }
+}
 
 exports.bttApprove = async (token, address, spender) => {
     try {
@@ -677,6 +705,35 @@ exports.bttAllow = async (token, credentials, spender, amount, res) => {
             token
         )
         var gasPrice = await credentials.web3UrlBTT.eth.getGasPrice()
+        var gas = await contract.methods
+            .approve(spender, amount)
+            .estimateGas({ from: credentials.address })
+        var receipt = await contract.methods
+            .approve(spender, amount)
+            .send({ from: credentials.address, gas: gas, gasPrice: gasPrice })
+            .once('transactionHash', function (transactionHash) {})
+
+        return {
+            transactionHash: receipt.transactionHash,
+            address: credentials.address,
+            spender: spender,
+        }
+    } catch (err) {
+        res.status(500).send({
+            code: 500,
+            error: err.message ? err.message : err.error,
+        })
+    }
+}
+
+exports.artheraAllow = async (token, credentials, spender, amount, res) => {
+    try {
+        if (this.isNativeAddr(token)) token = wrapConstants['ARTHERA'].address
+        var contract = new credentials.Web3ARTHERA.eth.Contract(
+            Constants.token.abi,
+            token
+        )
+        var gasPrice = await credentials.Web3ARTHERA.eth.getGasPrice()
         var gas = await contract.methods
             .approve(spender, amount)
             .estimateGas({ from: credentials.address })
@@ -1055,10 +1112,7 @@ exports.getRemainingFunds = async (hash, credentials, advertiser = null) => {
             gasPrice,
         })
 
-        await Campaigns.updateOne(
-            { hash: hash },
-            { $set: { retrieved: true } }
-        )
+        await Campaigns.updateOne({ hash: hash }, { $set: { retrieved: true } })
         return {
             transactionHash: receipt.transactionHash,
             hash,
@@ -1432,10 +1486,9 @@ exports.getTransactionAmount = async (
 }
 
 exports.getProviderUrl = async (networkName) => {
-    const network = networks.find(net => net.name === networkName);
-    return network ? network.providerUrl : null;
+    const network = networks.find((net) => net.name === networkName)
+    return network ? network.providerUrl : null
 }
-
 
 exports.getTransactionAmountExternal = async (
     credentials,
@@ -1445,16 +1498,21 @@ exports.getTransactionAmountExternal = async (
 ) => {
     try {
         let web3 = await new Web3(
-            new Web3.providers.HttpProvider(await exports.getProviderUrl(network), options)
+            new Web3.providers.HttpProvider(
+                await exports.getProviderUrl(network),
+                options
+            )
         )
-        await new Promise(resolve => setTimeout(resolve, 15000));
+        await new Promise((resolve) => setTimeout(resolve, 15000))
 
         let data = await new web3.eth.getTransactionReceipt(transactionHash)
 
         let amount = type === 'BTTC' ? data.logs[1].data : data.logs[0].data
         let hex = web3.utils.hexToNumberString(amount)
         return hex
-    } catch (e) {console.log("error",e)}
+    } catch (e) {
+        console.log('error', e)
+    }
 }
 
 exports.campaignStatus = (campaign) => {
