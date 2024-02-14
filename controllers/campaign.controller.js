@@ -50,6 +50,8 @@ const {
     approve,
     allow,
     lockNetwork,
+    artheraApprove,
+    unlockArthera,
 } = require('../web3/campaigns')
 
 const { unlock } = require('../web3/wallets')
@@ -61,12 +63,14 @@ const {
     createPerformanceCampaign,
     lock,
     unlockBsc,
+
     bep20Allow,
     lockBSC,
     bep20Approve,
     polygonApprove,
     bttApprove,
     bttAllow,
+    artheraAllow,
     lockERC20,
     erc20Allow,
     erc20Approve,
@@ -2373,6 +2377,60 @@ exports.campaignAllowance = async (req, res) => {
             err.message ? err.message : err.error,
             false
         )
+    }
+}
+
+exports.artheraApproval = async (req, res) => {
+    try {
+        let tokenAddress = req.body.tokenAddress
+        let campaignAddress = req.body.campaignAddress
+        let account = await getAccount(req, res) // FIXED
+        let allowance = await artheraApprove(
+            tokenAddress,
+            account.address,
+            campaignAddress
+        )
+        return responseHandler.makeResponseData(res, 200, 'success', {
+            token: tokenAddress,
+            allowance: allowance,
+            spender: campaignAddress,
+        })
+    } catch (err) {
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error,
+            false
+        )
+    }
+}
+
+exports.artheraAllow = async (req, res) => {
+    try {
+        let campaignAddress = req.body.campaignAddress
+        let amount = req.body.amount
+        let polygonToken = req.body.tokenAddress
+        var cred = await unlockArthera(req, res)
+        if (!cred) return
+
+        let ret = await artheraAllow(
+            polygonToken,
+            cred,
+            campaignAddress,
+            amount,
+            res
+        )
+        if (!ret) return
+        return responseHandler.makeResponseData(res, 200, 'success', ret)
+    } catch (err) {
+        return responseHandler.makeResponseError(
+            res,
+            500,
+            err.message ? err.message : err.error,
+            false
+        )
+    } finally {
+        if (cred) lock(cred)
     }
 }
 
