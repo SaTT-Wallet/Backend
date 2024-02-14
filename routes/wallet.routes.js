@@ -65,7 +65,6 @@ const {
     migrationWalletValidation,
     cryptoListValidation,
 } = require('../middleware/walletValidator.middleware')
-const { artheraConnexion } = require('../blockchainConnexion')
 
 /**
  * @swagger
@@ -938,10 +937,5 @@ router.post('/export-keystore-mobile', verifyAuth, exportKeyStoreMobile)
 router.get('/nfts/:address', checkEVMValidation, getNftByAddress)
 
 router.post('/getBalance', verifyAuth, getBalanceByToken)
-
-router.get('/arthera', async (req, res) => {
-    const result = await artheraConnexion()
-    console.log({ result })
-})
 
 module.exports = router

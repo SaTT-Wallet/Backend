@@ -9,9 +9,7 @@ var fs = require('fs')
 var bip39 = require('bip39')
 var bip32 = require('bip32')
 var bip38 = require('bip38')
-const { ethers } = require('ethers');
-
-
+const { ethers } = require('ethers')
 
 const Web3 = require('web3')
 const {
@@ -30,6 +28,7 @@ const {
     bttConnexion,
     tronConnexion,
     webTronInstance,
+    artheraConnexion,
 } = require('../blockchainConnexion')
 
 const {
@@ -272,6 +271,15 @@ exports.gasPriceBtt = async (req, res) => {
     })
 }
 
+exports.gasPriceAA = async (req, res) => {
+    let Web3ETH = await artheraConnexion()
+
+    var gasPrice = await Web3ETH.eth.getGasPrice()
+    return responseHandler.makeResponseData(res, 200, 'success', {
+        gasPrice: (gasPrice * 280) / 1000000000,
+    })
+}
+
 exports.gasPriceTrx = async (req, res) => {
     let tronWeb = await webTronInstance()
 
@@ -290,7 +298,6 @@ exports.getCharts = async (req, res) => {
     let charts = await getChart(req.body.id, req.body.range)
     return responseHandler.makeResponseData(res, 200, 'success', charts)
 }
-
 
 exports.cryptoPriceDetails = async (req, res) => {
     let chart = await getChartVariation(req.query.cryptolist)
@@ -534,51 +541,60 @@ exports.transferTokensController = async (req, res) => {
     }
 }
 
-
 exports.getBalanceExternalWallet = async (req, res) => {
     try {
-        const { token, walletAddress } = req.body;
+        const { token, walletAddress } = req.body
 
         const networks = [
-            { name: 'ethereum', providerUrl: 'https://mainnet.infura.io/v3/YOUR_INFURA_API_KEY' },
+            {
+                name: 'ethereum',
+                providerUrl: 'https://mainnet.infura.io/v3/YOUR_INFURA_API_KEY',
+            },
             { name: 'bsc', providerUrl: 'https://bsc-dataseed.binance.org/' },
             { name: 'polygon', providerUrl: 'https://polygon-rpc.com/' },
             // Add more networks here if needed
-        ];
+        ]
 
-        let balanceResponse;
+        let balanceResponse
 
         for (const networkObj of networks) {
             try {
-                const provider = new ethers.providers.JsonRpcProvider(networkObj.providerUrl);
+                const provider = new ethers.providers.JsonRpcProvider(
+                    networkObj.providerUrl
+                )
                 const contract = new ethers.Contract(
                     token,
                     ['function balanceOf(address) view returns (uint256)'],
                     provider
-                );
+                )
 
-                const balance = await contract.balanceOf(walletAddress);
-                const formattedBalance = ethers.utils.formatUnits(balance, 18); // Assuming 18 decimals, adjust as needed
+                const balance = await contract.balanceOf(walletAddress)
+                const formattedBalance = ethers.utils.formatUnits(balance, 18) // Assuming 18 decimals, adjust as needed
 
-                balanceResponse = { balance: formattedBalance, network: networkObj.name };
-                res.json(balanceResponse);
-                return; // Return immediately upon successful balance fetch
+                balanceResponse = {
+                    balance: formattedBalance,
+                    network: networkObj.name,
+                }
+                res.json(balanceResponse)
+                return // Return immediately upon successful balance fetch
             } catch (error) {
                 // Handle network-specific errors here
-                console.error(`Error fetching balance for ${networkObj.name}: ${error.message}`);
+                console.error(
+                    `Error fetching balance for ${networkObj.name}: ${error.message}`
+                )
             }
         }
 
         // If the loop completes without returning, it means all networks failed
         res.status(500).json({
             error: 'An error occurred while fetching the balance for all networks.',
-        });
+        })
     } catch (err) {
         res.status(500).json({
             error: 'An error occurred while setting up network connections.',
-        });
+        })
     }
-};
+}
 
 exports.addNewToken = async (req, res) => {
     try {
@@ -1707,9 +1723,6 @@ exports.exportKeyStoreMobile = async (req, res) => {
     }
 }
 
-
-
-
 exports.exportBtc = async (req, res) => {
     try {
         res.attachment()
@@ -1729,8 +1742,6 @@ exports.exportBtc = async (req, res) => {
         }
     } catch (err) {}
 }
-
-
 
 exports.exportEth = async (req, res) => {
     try {
@@ -1753,9 +1764,6 @@ exports.exportEth = async (req, res) => {
     }
 }
 
-
-
-
 exports.exportTron = async (req, res) => {
     try {
         res.attachment()
@@ -1777,8 +1785,6 @@ exports.exportTron = async (req, res) => {
     }
 }
 
-
-
 exports.exportTronV2 = async (req, res) => {
     try {
         res.attachment()
@@ -1799,8 +1805,6 @@ exports.exportTronV2 = async (req, res) => {
         )
     }
 }
-
-
 
 exports.exportBtcV2 = async (req, res) => {
     try {
@@ -1825,7 +1829,6 @@ exports.exportBtcV2 = async (req, res) => {
         }
     } catch (err) {}
 }
-
 
 exports.exportEthV2 = async (req, res) => {
     try {
