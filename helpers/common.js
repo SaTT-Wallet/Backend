@@ -13,11 +13,7 @@ var TwitterProfile = require('../model/twitterProfile.model')
 var fs = require('fs')
 // /const { getPrices } = require('../manager/accounts.js')
 //const { getBalanceByUid } = require('../web3/wallets')
-const {
-
-    UserExternalWallet,
-
-} = require('../model/index')
+const { UserExternalWallet } = require('../model/index')
 const {
     unlock,
     createSeed,
@@ -225,7 +221,6 @@ exports.updateStatforUser = async (UserId) => {
             countries: 0,
         }
     )
-
     for (let campaign of campaigns) {
         if (!campaign) continue
         let type = campaignStatus(campaign)
@@ -362,8 +357,7 @@ exports.updateStatforUser = async (UserId) => {
     }
 }
 
-
-exports.externalUpdateStatforUser = async (UserId) => {
+exports.externalUpdateStatforUser = async (UserId, wallet) => {
     let campaigns = await Campaigns.find(
         { hash: { $exists: true }, type: { $ne: 'archived' } },
         {
@@ -378,7 +372,6 @@ exports.externalUpdateStatforUser = async (UserId) => {
             countries: 0,
         }
     )
-
     for (let campaign of campaigns) {
         if (!campaign) continue
         let type = campaignStatus(campaign)
@@ -395,15 +388,8 @@ exports.externalUpdateStatforUser = async (UserId) => {
         )
         campaign.type = type
     }
-
-    const myWallet = await UserExternalWallet.findOne({
-        UserId: UserId,
-    })
-
-    if (!myWallet) return
-
     let MyLinksCampaign = await CampaignLink.find({
-        id_wallet: myWallet.walletId,
+        id_wallet: wallet,
     })
 
     const eventLint = MyLinksCampaign.reduce((acc, event) => {

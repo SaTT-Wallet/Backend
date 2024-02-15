@@ -74,7 +74,7 @@ const Grid = require('gridfs-stream')
 
 exports.createUserFromExternalWallet = async (req, res) => {
     try {
-        const userExist = await UserExternalWallet.findOne({
+        var userExist = await UserExternalWallet.findOne({
             walletId: req.body.wallet,
         })
         if (!userExist) {
@@ -103,12 +103,17 @@ exports.createUserFromExternalWallet = async (req, res) => {
                 userExist
             )
     } catch (err) {
-        console.log({ err })
         return makeResponseError(
             res,
             500,
             err.message ? err.message : err.error
         )
+    } finally {
+        userExist &&
+            (await externalUpdateStatforUser(
+                userExist.UserId,
+                userExist.walletId
+            ))
     }
 }
 
@@ -256,7 +261,6 @@ exports.externalDeleteGoogleChannels = async (req, res) => {
             return makeResponseData(res, 200, 'deleted successfully')
         }
     } catch (err) {
-        console.log({ err })
         return makeResponseError(
             res,
             500,
@@ -738,9 +742,7 @@ module.exports.externalSaveCampaign = async (req, res) => {
         campaign.createdAt = Date.now()
         campaign.updatedAt = Date.now()
         campaign.type = 'draft'
-        console.log({ campaign })
         let draft = await Campaigns.create(campaign)
-        console.log({ draft })
         return responseHandler.makeResponseData(res, 200, 'success', draft)
     } catch (err) {
         return responseHandler.makeResponseError(
