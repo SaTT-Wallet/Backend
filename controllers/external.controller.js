@@ -421,10 +421,15 @@ exports.externalGetLinks = async (req, res) => {
         let allProms = []
         let query = filterLinks(req, accountData)
         var count =
-            (await CampaignLink.find(
-                { id_wallet: accountData },
-                { type: { $exists: 0 } }
-            ).countDocuments()) || 0
+            req.query.state === 'owner'
+                ? (await CampaignLink.find(
+                      { id_campaign: query.id_campaign },
+                      { type: { $exists: 0 } }
+                  ).countDocuments()) || 0
+                : (await CampaignLink.find(
+                      { id_wallet: accountData },
+                      { type: { $exists: 0 } }
+                  ).countDocuments()) || 0
         let tri =
             req.query.state === 'owner'
                 ? [
