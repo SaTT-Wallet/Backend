@@ -420,17 +420,11 @@ exports.externalGetLinks = async (req, res) => {
 
         let allProms = []
         let query = filterLinks(req, accountData)
-        var count = query.id_campaign
-            ? (delete query.id_wallet,
-              await CampaignLink.find(
-                  { id_campaign: query.id_campaign },
-                  { type: 0 }
-              ).countDocuments())
-            : (await CampaignLink.find(
-                  { id_wallet: query.id_wallet },
-                  { type: 0 }
-              ).countDocuments()) || 0
-
+        var count =
+            (await CampaignLink.find(
+                { id_wallet: accountData },
+                { type: { $exists: 0 } }
+            ).countDocuments()) || 0
         let tri =
             req.query.state === 'owner'
                 ? [
