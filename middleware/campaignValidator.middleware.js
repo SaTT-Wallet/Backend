@@ -98,6 +98,7 @@ const schemas = {
             'polygon',
             'tron',
             'bttc',
+            'arthera',
         ]),
         pass: Joi.string().required(),
         ratios: Joi.array().required(),

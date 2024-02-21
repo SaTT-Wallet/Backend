@@ -315,22 +315,25 @@ module.exports.launchCampaign = async (req, res) => {
                 await wrappedtrx(tronWeb, amount)
             }
         } else {
-            cred = await unlockV2(req, res)
+            cred =
+                network === 'ARTHERA'
+                    ? await unlockArthera(req, res)
+                    : await unlockV2(req, res)
 
             if (!cred) return
         }
-
         var ret = await createPerformanceCampaign(
             dataUrl,
             startDate,
             endDate,
             ratios,
-            tokenAddress === null ? Constants.token.native : tokenAddress,
+            tokenAddress,
             amount,
             cred,
             tronWeb,
             res,
-            limit
+            limit,
+            network
         )
         if (!ret) return
         return responseHandler.makeResponseData(res, 200, 'success', ret)
