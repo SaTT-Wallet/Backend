@@ -1433,7 +1433,8 @@ exports.validateProm = async (
     r,
     s,
     credentials,
-    tronWeb
+    tronWeb,
+    network
 ) => {
     if (!!tronWeb) {
         let ctr = await tronWeb.contract(
@@ -1455,13 +1456,17 @@ exports.validateProm = async (
         } else return result
     }
     var gas = 1000000
-    // let ctr = await getPromContract(idProm, credentials)
-
-    let ctr = await getContractByNetwork(credentials)
-
-    // let ctr = await getPromContract(idProm, credentials)
-
-    var gasPrice = await ctr.getGasPrice()
+    let ctr
+    if (network === 'ARTHERA') {
+        ctr = new credentials.Web3ARTHERA.eth.Contract(
+            CampaignConstants[ArtheraNetworkConstant].abi,
+            CampaignConstants[ArtheraNetworkConstant].address
+        )
+    } else ctr = await getContractByNetwork(credentials)
+    var gasPrice =
+        network === 'ARTHERA'
+            ? await credentials.Web3ARTHERA.eth.getGasPrice()
+            : await contract.getGasPrice()
 
     var receipt = await ctr.methods
         .validateProm(

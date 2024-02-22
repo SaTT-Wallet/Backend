@@ -1366,7 +1366,10 @@ exports.validateCampaign = async (req, res) => {
                 tronWeb.setAddress(walletAddr)
             } else {
                 req.body.network = campaign.token.type
-                cred = await unlockV2(req, res)
+                cred =
+                    req.body.network === 'ARTHERA'
+                        ? await unlockArthera(req, res)
+                        : await unlockV2(req, res)
                 if (
                     typeof campaignLink.userExternal !== 'undefined' &&
                     campaignLink.userExternal === true
@@ -1385,9 +1388,13 @@ exports.validateCampaign = async (req, res) => {
                     }
                 } else {
                     const recoveredSigner =
-                        await cred.WEB3.eth.accounts.recover(
-                            campaignLink.applyerSignature
-                        )
+                        req.body.network === 'ARTHERA'
+                            ? await cred.Web3ARTHERA.eth.accounts.recover(
+                                  campaignLink.applyerSignature
+                              )
+                            : await cred.WEB3.eth.accounts.recover(
+                                  campaignLink.applyerSignature
+                              )
                     if (
                         recoveredSigner.toLowerCase() !== campaignLink.id_wallet
                     ) {
@@ -1423,7 +1430,8 @@ exports.validateCampaign = async (req, res) => {
                     signature.r,
                     signature.s,
                     cred,
-                    tronWeb
+                    tronWeb,
+                    req.body.network
                 )
             }
 
@@ -1553,6 +1561,7 @@ exports.validateCampaign = async (req, res) => {
             return responseHandler.makeResponseError(res, 401, 'unothorized')
         }
     } catch (err) {
+        console.log({ err })
         return responseHandler.makeResponseError(
             res,
             500,
