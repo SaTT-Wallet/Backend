@@ -485,14 +485,12 @@ exports.createPerformanceCampaign = async (
                         gasPrice,
                     })
 
-                let receipt = await tokenSmartContract.methods
-                    .deposit()
-                    .send({
-                        from: credentials.address,
-                        value: amount,
-                        gas,
-                        gasPrice,
-                    })
+                let receipt = await tokenSmartContract.methods.deposit().send({
+                    from: credentials.address,
+                    value: amount,
+                    gas,
+                    gasPrice,
+                })
             } else await wrapNative(amount, credentials)
         }
 
@@ -556,7 +554,8 @@ exports.createBountiesCampaign = async (
     credentials,
     tronWeb,
     res,
-    limit = 0
+    limit = 0,
+    network
 ) => {
     if (!!tronWeb) {
         let ctr = await tronWeb.contract(
@@ -598,13 +597,46 @@ exports.createBountiesCampaign = async (
     }
 
     if (this.isNativeAddr(token)) {
-        token = wrapConstants[credentials.network].address
-        await wrapNative(amount, credentials)
-    }
+        token =
+            network === 'ARTHERA'
+                ? process.env.CONST_WAA
+                : wrapConstants[credentials.network].address
+        if (network === 'ARTHERA') {
+            tokenSmartContract = new credentials.Web3ARTHERA.eth.Contract(
+                wrapConstants[ArtheraNetworkConstant].abi,
+                wrapConstants[ArtheraNetworkConstant].address
+            )
 
-    var ctr = await getContractByNetwork(credentials)
-    var gasPrice = await ctr.getGasPrice()
-    var gas = 5000000
+            let gasPrice = await credentials.Web3ARTHERA.eth.getGasPrice()
+            let gas = await tokenSmartContract.methods.deposit().estimateGas({
+                from: credentials.address,
+                value: amount,
+                gasPrice,
+            })
+
+            let receipt = await tokenSmartContract.methods.deposit().send({
+                from: credentials.address,
+                value: amount,
+                gas,
+                gasPrice,
+            })
+        } else await wrapNative(amount, credentials)
+    }
+    let ctr
+
+    if (network === 'ARTHERA') {
+        ctr = new credentials.Web3ARTHERA.eth.Contract(
+            CampaignConstants[ArtheraNetworkConstant].abi,
+            CampaignConstants[ArtheraNetworkConstant].address
+        )
+    } else ctr = await getContractByNetwork(credentials)
+    // var ctr = await getContractByNetwork(credentials)
+    var gasPrice =
+        network === 'ARTHERA'
+            ? await credentials.Web3ARTHERA.eth.getGasPrice()
+            : await contract.getGasPrice()
+    /** GET GAS LIMIT FROM .env */
+    var gas = process.env.GAS_LIMIT
 
     try {
         var receipt = await ctr.methods
