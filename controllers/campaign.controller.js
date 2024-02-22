@@ -1072,18 +1072,31 @@ exports.apply = async (req, res) => {
                     401,
                     'Wallet v2 not found'
                 )
-            cred = await unlockV2(req, res)
-
+            cred =
+                req.body.network === 'ARTHERA'
+                    ? await unlockArthera(req, res)
+                    : await unlockV2(req, res)
             let decryptAccount =
-                await cred.Web3BEP20.eth.accounts.wallet.decrypt(
-                    [userWallet.walletV2.keystore],
-                    req.body.pass
-                )
+                req.body.network === 'ARTHERA'
+                    ? await cred.Web3ARTHERA.eth.accounts.wallet.decrypt(
+                          [userWallet.walletV2.keystore],
+                          req.body.pass
+                      )
+                    : await cred.Web3BEP20.eth.accounts.wallet.decrypt(
+                          [userWallet.walletV2.keystore],
+                          req.body.pass
+                      )
 
-            signature = await cred.Web3BEP20.eth.accounts.sign(
-                req.body.idPost + hash,
-                decryptAccount[0].privateKey
-            )
+            signature =
+                req.body.network === 'ARTHERA'
+                    ? await cred.Web3ARTHERA.eth.accounts.sign(
+                          req.body.idPost + hash,
+                          decryptAccount[0].privateKey
+                      )
+                    : await cred.Web3BEP20.eth.accounts.sign(
+                          req.body.idPost + hash,
+                          decryptAccount[0].privateKey
+                      )
             if (!cred) return
         }
 
