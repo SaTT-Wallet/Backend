@@ -41,7 +41,7 @@ const validateNetworks = (validNetworks) =>
 
 // VALIDATION ADDRESS
 const validateAddress = (pattern) =>
-    Joi.string().required().pattern(new RegExp(pattern))
+    Joi.string().required().pattern(new RegExp(pattern)).allow(null)
 const validateAddressNoRequried = (pattern) =>
     Joi.string().pattern(new RegExp(pattern))
 
@@ -124,6 +124,7 @@ const schemas = {
             'polygon',
             'tron',
             'bttc',
+            'arthera',
         ]),
         pass: Joi.string().required(),
         bounties: Joi.array(),

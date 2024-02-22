@@ -482,8 +482,10 @@ module.exports.launchBounty = async (req, res) => {
                 await wrappedtrx(tronWeb, amount)
             }
         } else {
-            cred = await unlockV2(req, res)
-
+            cred =
+                network === 'ARTHERA'
+                    ? await unlockArthera(req, res)
+                    : await unlockV2(req, res)
             if (!cred) return
         }
         var ret = await createBountiesCampaign(
@@ -491,12 +493,13 @@ module.exports.launchBounty = async (req, res) => {
             startDate,
             endDate,
             bounties,
-            tokenAddress ? tokenAddress : Constants.token.native,
+            tokenAddress,
             amount,
             cred,
             tronWeb,
             res,
-            limit
+            limit,
+            network
         )
         if (!ret) return
         return responseHandler.makeResponseData(res, 200, 'success', ret)
