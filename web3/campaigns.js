@@ -16,6 +16,7 @@ const {
     web3PolygonUrl,
     CampaignConstants,
     OracleConstants,
+    ArtheraNetworkConstant,
 } = require('../conf/const')
 const { Campaigns } = require('../model/index')
 
@@ -95,8 +96,14 @@ exports.unlockArthera = async (req, res) => {
         let pass = req.body.pass
         let account = await Wallet.findOne({ UserId })
         let Web3ARTHERA = await artheraConnexion()
-        Web3ARTHERA.eth.accounts.wallet.decrypt([account.keystore], pass)
-        return { address: '0x' + account.keystore.address, Web3ARTHERA }
+        Web3ARTHERA.eth.accounts.wallet.decrypt(
+            [account.walletV2?.keystore],
+            pass
+        )
+        return {
+            address: '0x' + account.walletV2?.keystore.address,
+            Web3ARTHERA,
+        }
     } catch (err) {
         if (!!res && res.length > 0) {
             res.status(500).send({
@@ -294,10 +301,16 @@ exports.unlockPolygon = async (req, res) => {
 }
 
 exports.lock = async (credentials) => {
-    credentials.Web3ETH.eth.accounts.wallet.remove(credentials.address)
-    credentials.Web3BEP20.eth.accounts.wallet.remove(credentials.address)
-    credentials.Web3POLYGON.eth.accounts.wallet.remove(credentials.address)
-    credentials.web3UrlBTT.eth.accounts.wallet.remove(credentials.address)
+    if (!!credentials.Web3ETH)
+        credentials.Web3ETH.eth.accounts.wallet.remove(credentials.address)
+    if (!!credentials.Web3BEP20)
+        credentials.Web3BEP20.eth.accounts.wallet.remove(credentials.address)
+    if (!!credentials.Web3POLYGON)
+        credentials.Web3POLYGON.eth.accounts.wallet.remove(credentials.address)
+    if (!!credentials.web3UrlBTT)
+        credentials.web3UrlBTT.eth.accounts.wallet.remove(credentials.address)
+    if (!!credentials.web3ARTHERA)
+        credentials.web3ARTHERA.eth.accounts.wallet.remove(credentials.address)
 }
 exports.lockNetwork = async (credentials) => {
     credentials.web3.eth.accounts.wallet.remove(credentials.address)
@@ -382,7 +395,7 @@ exports.getAccount = async (req, res) => {
 }
 
 exports.isNativeAddr = (addr) => {
-    return addr == Constants.token.matic
+    return addr == Constants.token.matic || addr == null
 }
 
 exports.isWrappedAddr = (addr) => {
@@ -402,7 +415,8 @@ exports.createPerformanceCampaign = async (
     credentials,
     tronWeb,
     res,
-    limit = 100
+    limit = 100,
+    network
 ) => {
     try {
         /**   CHECK IF COMPAGNE NETWORK IS TRON */
@@ -452,16 +466,51 @@ exports.createPerformanceCampaign = async (
 
         /** CHECK TOKEN IS NATIVE OR NO (BNB for BEP20 / ETH for ERC20 ) */
         if (this.isNativeAddr(token)) {
-            token = wrapConstants[credentials.network].address
+            token =
+                network === 'ARTHERA'
+                    ? process.env.CONST_WAA
+                    : wrapConstants[credentials.network].address
+            if (network === 'ARTHERA') {
+                tokenSmartContract = new credentials.Web3ARTHERA.eth.Contract(
+                    wrapConstants[ArtheraNetworkConstant].abi,
+                    wrapConstants[ArtheraNetworkConstant].address
+                )
 
-            await wrapNative(amount, credentials)
+                let gasPrice = await credentials.Web3ARTHERA.eth.getGasPrice()
+                let gas = await tokenSmartContract.methods
+                    .deposit()
+                    .estimateGas({
+                        from: credentials.address,
+                        value: amount,
+                        gasPrice,
+                    })
+
+                let receipt = await tokenSmartContract.methods
+                    .deposit()
+                    .send({
+                        from: credentials.address,
+                        value: amount,
+                        gas,
+                        gasPrice,
+                    })
+            } else await wrapNative(amount, credentials)
         }
 
         /** GET CONTRACT  */
-        const contract = await getContractByNetwork(credentials)
+        let contract
+
+        if (network === 'ARTHERA') {
+            contract = new credentials.Web3ARTHERA.eth.Contract(
+                CampaignConstants[ArtheraNetworkConstant].abi,
+                CampaignConstants[ArtheraNetworkConstant].address
+            )
+        } else contract = await getContractByNetwork(credentials)
 
         /** GET GAS PRICE  */
-        const gasPrice = await contract.getGasPrice()
+        const gasPrice =
+            network === 'ARTHERA'
+                ? await credentials.Web3ARTHERA.eth.getGasPrice()
+                : await contract.getGasPrice()
 
         /** GET GAS LIMIT FROM .env */
         const gas = process.env.GAS_LIMIT
