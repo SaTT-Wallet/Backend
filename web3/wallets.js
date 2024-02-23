@@ -725,7 +725,10 @@ exports.getPrices = async () => {
                             tokenAddress: tokenAddress,
                             symbol: elem.symbol,
                             name: elem.name,
-                            price: elem?.quote.USD.price,
+                            price:
+                                elem.symbol === 'AA'
+                                    ? '0.5'
+                                    : elem?.quote.USD.price,
                             percent_change_24h:
                                 elem?.quote.USD.percent_change_24h,
                             percent_change_1h:
