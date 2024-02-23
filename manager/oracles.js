@@ -1224,12 +1224,19 @@ exports.answerBounty = async function (opts) {
 
         campaignWallet = JSON.parse(campaignKeystore)
 
-        opts.credentials.WEB3.eth.accounts.wallet.decrypt(
-            [campaignWallet],
-            process.env.CAMPAIGN_OWNER_PASS
-        )
+        !!opts.credentials.Web3ARTHERA
+            ? opts.credentials.Web3ARTHERA.eth.accounts.wallet.decrypt(
+                  [campaignWallet],
+                  process.env.CAMPAIGN_OWNER_PASS
+              )
+            : opts.credentials.WEB3.eth.accounts.wallet.decrypt(
+                  [campaignWallet],
+                  process.env.CAMPAIGN_OWNER_PASS
+              )
 
-        var gasPrice = await contract.getGasPrice()
+        var gasPrice = !!opts.credentials.Web3ARTHERA
+            ? await opts.credentials.Web3ARTHERA.eth.getGasPrice()
+            : await contract.getGasPrice()
 
         var receipt = await contract.methods
             .answerBounty(opts.campaignContract, opts.idProm, opts.nbAbos)
@@ -1407,12 +1414,19 @@ exports.answerCall = async (opts) => {
 
         campaignWallet = JSON.parse(campaignKeystore)
 
-        opts.credentials.WEB3.eth.accounts.wallet.decrypt(
-            [campaignWallet],
-            process.env.CAMPAIGN_OWNER_PASS
-        )
+        !!opts.credentials.Web3ARTHERA
+            ? opts.credentials.Web3ARTHERA.eth.accounts.wallet.decrypt(
+                  [campaignWallet],
+                  process.env.CAMPAIGN_OWNER_PASS
+              )
+            : opts.credentials.WEB3.eth.accounts.wallet.decrypt(
+                  [campaignWallet],
+                  process.env.CAMPAIGN_OWNER_PASS
+              )
 
-        var gasPrice = await contract.getGasPrice()
+        var gasPrice = !!opts.credentials.Web3ARTHERA
+            ? await opts.credentials.Web3ARTHERA.eth.getGasPrice()
+            : await contract.getGasPrice()
         var receipt = await contract.methods
             .answer(
                 opts.campaignContract,

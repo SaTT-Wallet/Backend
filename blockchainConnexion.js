@@ -7,6 +7,7 @@ const {
     web3UrlArthera,
     CampaignConstants,
     OracleConstants,
+    ArtheraNetworkConstant,
 } = require('./conf/const')
 const { Campaigns, Event } = require('./model/index')
 const { TronConstant } = require('./conf/const')
@@ -166,17 +167,28 @@ exports.getCampaignContractByHashCampaign = async (
     tronWeb = null
 ) => {
     try {
+        var ctr
         var campaign = await Campaigns.findOne({ hash })
         if (campaign?.contract) {
             if (!!tronWeb) {
-                let ctr = await tronWeb.contract(
+                ctr = await tronWeb.contract(
                     TronConstant.campaign.abi,
                     TronConstant.campaign.address
                 )
                 return ctr
+            } else {
+                if (campaign.token.type === 'ARTHERA') {
+                    ctr = new credentials.Web3ARTHERA.eth.Contract(
+                        CampaignConstants[ArtheraNetworkConstant].abi,
+                        CampaignConstants[ArtheraNetworkConstant].address
+                    )
+                } else {
+                    credentials.network = campaign.token.type
+                    ctr = this.getContractByNetwork(credentials)
+                }
+
+                return ctr
             }
-            credentials.network = campaign.token.type
-            return this.getContractByNetwork(credentials)
         }
     } catch (err) {}
 }
@@ -230,11 +242,19 @@ exports.getCampaignOwnerAddr = async (idProm) => {
 
 exports.getOracleContractByCampaignContract = async (credentials = false) => {
     try {
-        var contract = new credentials.WEB3.eth.Contract(
-            OracleConstants[credentials.network.toUpperCase()].abi,
-            OracleConstants[credentials.network.toUpperCase()].address
-        )
-        contract.getGasPrice = credentials.WEB3.eth.getGasPrice
+        var contract
+        if (!!credentials.Web3ARTHERA) {
+            contract = new credentials.Web3ARTHERA.eth.Contract(
+                OracleConstants[ArtheraNetworkConstant].abi,
+                OracleConstants[ArtheraNetworkConstant].address
+            )
+        } else {
+            contract = new credentials.WEB3.eth.Contract(
+                OracleConstants[credentials.network.toUpperCase()].abi,
+                OracleConstants[credentials.network.toUpperCase()].address
+            )
+            contract.getGasPrice = credentials.WEB3.eth.getGasPrice
+        }
 
         return contract
     } catch (err) {}

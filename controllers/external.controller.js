@@ -1156,7 +1156,12 @@ module.exports.externalAnswer = async (req, res) => {
             )
             let maxBountieFollowers =
                 bountie.categories[bountie.categories.length - 1].maxFollowers
-            var evts = await updateBounty(idProm, credentials, tronWeb)
+            var evts = await updateBounty(
+                idProm,
+                credentials,
+                tronWeb,
+                campaignData.token.type
+            )
             stats = link.abosNumber
             if (+stats >= +maxBountieFollowers) {
                 stats = (+maxBountieFollowers - 1).toString()

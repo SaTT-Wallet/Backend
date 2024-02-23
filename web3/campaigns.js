@@ -1,4 +1,5 @@
 const { Wallet, User } = require('../model/index')
+var fs = require('fs')
 const {
     erc20Connexion,
     bep20Connexion,
@@ -1233,7 +1234,13 @@ exports.fundCampaign = async (idCampaign, token, amount, credentials) => {
     } catch (err) {}
 }
 
-exports.getGains = async (idProm, credentials, tronWeb, token = false) => {
+exports.getGains = async (
+    idProm,
+    credentials,
+    tronWeb,
+    token = false,
+    network
+) => {
     if (!!tronWeb) {
         let ctr = await tronWeb.contract(
             TronConstant.campaign.abi,
@@ -1255,9 +1262,18 @@ exports.getGains = async (idProm, credentials, tronWeb, token = false) => {
         }
         return
     }
-    var ctr = await getPromContract(idProm, credentials)
+    let ctr
+    if (network === 'ARTHERA') {
+        ctr = new credentials.Web3ARTHERA.eth.Contract(
+            CampaignConstants[ArtheraNetworkConstant].abi,
+            CampaignConstants[ArtheraNetworkConstant].address
+        )
+    } else ctr = await getPromContract(idProm, credentials)
     var gas = 200000
-    var gasPrice = await ctr.getGasPrice()
+    var gasPrice =
+        network === 'ARTHERA'
+            ? await credentials.Web3ARTHERA.eth.getGasPrice()
+            : await contract.getGasPrice()
     var receipt = await ctr.methods.getGains(idProm).send({
         from: credentials.address,
         gas: gas,
@@ -1367,7 +1383,7 @@ exports.influencersLinks = async (links, tronWeb = null) => {
     } catch (err) {}
 }
 
-exports.updateBounty = async (idProm, credentials, tronWeb) => {
+exports.updateBounty = async (idProm, credentials, tronWeb, network) => {
     try {
         if (!!tronWeb) {
             let ctr = await tronWeb.contract(
@@ -1405,8 +1421,17 @@ exports.updateBounty = async (idProm, credentials, tronWeb) => {
             }
         }
         var gas = 200000
-        var ctr = await getPromContract(idProm, credentials)
-        var gasPrice = await ctr.getGasPrice()
+        let ctr
+        if (network === 'ARTHERA') {
+            ctr = new credentials.Web3ARTHERA.eth.Contract(
+                CampaignConstants[ArtheraNetworkConstant].abi,
+                CampaignConstants[ArtheraNetworkConstant].address
+            )
+        } else ctr = await getContractByNetwork(credentials)
+        var gasPrice =
+            network === 'ARTHERA'
+                ? await credentials.Web3ARTHERA.eth.getGasPrice()
+                : await contract.getGasPrice()
 
         var receipt = await ctr.methods.updateBounty(idProm).send({
             from: credentials.address,
@@ -1493,7 +1518,13 @@ exports.validateProm = async (
     }
 }
 
-exports.updatePromStats = async (idProm, credentials, tronWeb, res = null) => {
+exports.updatePromStats = async (
+    idProm,
+    credentials,
+    tronWeb,
+    res = null,
+    network
+) => {
     try {
         if (!!tronWeb) {
             let ctr = await tronWeb.contract(
@@ -1531,9 +1562,19 @@ exports.updatePromStats = async (idProm, credentials, tronWeb, res = null) => {
             }
         }
         var gas = 200000
-        var ctr = await getPromContract(idProm, credentials)
-        var gasPrice = await ctr.getGasPrice()
+        var ctr
 
+        if (network === 'ARTHERA') {
+            ctr = new credentials.Web3ARTHERA.eth.Contract(
+                CampaignConstants[ArtheraNetworkConstant].abi,
+                CampaignConstants[ArtheraNetworkConstant].address
+            )
+        } else ctr = await getContractByNetwork(credentials)
+
+        var gasPrice =
+            network === 'ARTHERA'
+                ? await credentials.Web3ARTHERA.eth.getGasPrice()
+                : await ctr.getGasPrice()
         var receipt = await ctr.methods.updatePromStats(idProm).send({
             from: credentials.address,
             gas: gas,

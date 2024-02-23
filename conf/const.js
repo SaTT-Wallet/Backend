@@ -5819,6 +5819,7 @@ BttConstants.token.satt = process.env.CONST_TOKEN_SATT_BTT_ADDRESS
 BttConstants.campaign.address = process.env.CONST_CAMPAIGN_ADDRESS_BTT
 ArtheraConstants.campaign.address = process.env.CONST_CAMPAIGN_ADDRESS_ARTHERA
 BttConstants.oracle.address = process.env.CONST_ORACLE_ADDRESS_BTT
+ArtheraConstants.oracle.address = process.env.CONST_ORACLE_ADDRESS_ARTHERA
 TronConstant.token.satt = process.env.CONST_TOKEN_SATT_TRON_ADDRESS
 TronConstant.campaign.address = process.env.CONST_CAMPAIGN_ADDRESS_TRON
 TronConstant.oracle.address = process.env.CONST_ORACLE_ADDRESS_TRON
