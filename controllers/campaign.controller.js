@@ -12,6 +12,7 @@ const { create } = require('ipfs-http-client')
 var mongoose = require('mongoose')
 var fs = require('fs')
 const axios = require('axios')
+const { CampaignConstants, ArtheraNetworkConstant } = require('../conf/const')
 
 const cron = require('node-cron')
 //const ipfs = IPFS('ipfs.infura.io', '5001', {protocol: 'https'})
@@ -1561,7 +1562,6 @@ exports.validateCampaign = async (req, res) => {
             return responseHandler.makeResponseError(res, 401, 'unothorized')
         }
     } catch (err) {
-        console.log({ err })
         return responseHandler.makeResponseError(
             res,
             500,
@@ -1595,8 +1595,10 @@ exports.gains = async (req, res) => {
             var wrappedTrx = false
             campaignData = await Campaigns.findOne({ hash: hash }).lean()
             req.body.network = campaignData.token.type
-            credentials = await unlockV2(req, res)
-
+            credentials =
+                req.body.network === 'ARTHERA'
+                    ? await unlockArthera(req, res)
+                    : await unlockV2(req, res)
             if (campaignData.token.type === 'TRON') {
                 let privateKey = (
                     await getWalletTron(req.user._id, req.body.pass)
@@ -1612,8 +1614,16 @@ exports.gains = async (req, res) => {
                 wrappedTrx = campaignData.token.addr === TronConstant.token.wtrx
                 tronWeb.wrappedTrx = wrappedTrx
             } else {
-                ctr = await getPromContract(idProm, credentials)
-                gasPrice = await ctr.getGasPrice()
+                if (req.body.network === 'ARTHERA') {
+                    ctr = new credentials.Web3ARTHERA.eth.Contract(
+                        CampaignConstants[ArtheraNetworkConstant].abi,
+                        CampaignConstants[ArtheraNetworkConstant].address
+                    )
+                    gasPrice = await credentials.Web3ARTHERA.eth.getGasPrice()
+                } else {
+                    ctr = await getPromContract(idProm, credentials)
+                    gasPrice = await ctr.getGasPrice()
+                }
             }
 
             let prom =
@@ -1642,7 +1652,8 @@ exports.gains = async (req, res) => {
                         idProm,
                         credentials,
                         tronWeb,
-                        campaignData.token.addr
+                        campaignData.token.addr,
+                        req.body.network
                     )
                     return responseHandler.makeResponseData(
                         res,
@@ -1658,7 +1669,12 @@ exports.gains = async (req, res) => {
                 let maxBountieFollowers =
                     bountie.categories[bountie.categories.length - 1]
                         .maxFollowers
-                var evts = await updateBounty(idProm, credentials, tronWeb)
+                var evts = await updateBounty(
+                    idProm,
+                    credentials,
+                    tronWeb,
+                    req.body.network
+                )
                 stats = link.abosNumber
                 if (+stats >= +maxBountieFollowers) {
                     stats = (+maxBountieFollowers - 1).toString()
@@ -1696,9 +1712,8 @@ exports.gains = async (req, res) => {
                         idProm,
                         credentials,
                         tronWeb,
-                        campaignData.token.addr
-                            ? campaignData.token.addr
-                            : Constants.token.native
+                        campaignData.token.addr,
+                        req.body.network
                     )
 
                     if (ret) {
@@ -1756,7 +1771,6 @@ exports.gains = async (req, res) => {
             if (stats.views === 'old') stats.views = link?.views
             stats.shares = stats?.shares || 0
             stats.likes = stats?.likes || 0
-
             requests = await Request.find({
                 new: true,
                 isBounty: false,
@@ -1764,7 +1778,6 @@ exports.gains = async (req, res) => {
                 idPost: prom.idPost,
                 idUser: prom.idUser,
             })
-
             if (!requests.length) {
                 if (
                     !prevstat.length ||
@@ -1776,7 +1789,8 @@ exports.gains = async (req, res) => {
                         idProm,
                         credentials,
                         tronWeb,
-                        res
+                        res,
+                        req.body.network
                     )
                     if (evts?.error)
                         return responseHandler.makeResponseError(
@@ -1786,13 +1800,13 @@ exports.gains = async (req, res) => {
                                 ? evts.error.message
                                 : evts.error.error
                         )
-
                     var evt = evts.events[0]
                     var idRequest =
                         (!!tronWeb && evt.result.idRequest) || evt.raw.topics[1]
                     requests = [{ id: idRequest }]
                 }
             }
+
             if (requests && requests.length) {
                 await Request.updateOne(
                     { id: requests[0].id },
@@ -1833,11 +1847,9 @@ exports.gains = async (req, res) => {
                 idProm,
                 credentials,
                 tronWeb,
-                campaignData.token.addr
-                    ? campaignData.token.addr
-                    : Constants.token.native
+                campaignData.token.addr,
+                req.body.network
             )
-
             if (ret) {
                 await CampaignLink.updateOne(
                     { id_prom: idProm },
@@ -1869,12 +1881,14 @@ exports.gains = async (req, res) => {
         )
     } finally {
         credentials && lock(credentials)
-
         if (ret?.transactionHash) {
             let campaignType = {}
 
-            let network = !!credentials && credentials.WEB3
-
+            let network =
+                !!credentials &&
+                (campaignData.token.type === 'ARTHERA'
+                    ? credentials.Web3ARTHERA
+                    : credentials.WEB3)
             let amount = await getTransactionAmount(
                 credentials,
                 campaignData.token.type,
