@@ -635,7 +635,7 @@ exports.createBountiesCampaign = async (
     var gasPrice =
         network === 'ARTHERA'
             ? await credentials.Web3ARTHERA.eth.getGasPrice()
-            : await contract.getGasPrice()
+            : await ctr.getGasPrice()
     /** GET GAS LIMIT FROM .env */
     var gas = process.env.GAS_LIMIT
 
@@ -1431,7 +1431,7 @@ exports.updateBounty = async (idProm, credentials, tronWeb, network) => {
         var gasPrice =
             network === 'ARTHERA'
                 ? await credentials.Web3ARTHERA.eth.getGasPrice()
-                : await contract.getGasPrice()
+                : await ctr.getGasPrice()
 
         var receipt = await ctr.methods.updateBounty(idProm).send({
             from: credentials.address,
@@ -1491,7 +1491,7 @@ exports.validateProm = async (
     var gasPrice =
         network === 'ARTHERA'
             ? await credentials.Web3ARTHERA.eth.getGasPrice()
-            : await contract.getGasPrice()
+            : await ctr.getGasPrice()
 
     var receipt = await ctr.methods
         .validateProm(
