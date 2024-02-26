@@ -1273,7 +1273,7 @@ exports.getGains = async (
     var gasPrice =
         network === 'ARTHERA'
             ? await credentials.Web3ARTHERA.eth.getGasPrice()
-            : await contract.getGasPrice()
+            : await ctr.getGasPrice()
     var receipt = await ctr.methods.getGains(idProm).send({
         from: credentials.address,
         gas: gas,
