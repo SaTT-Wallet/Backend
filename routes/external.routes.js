@@ -30,14 +30,14 @@ const {
     externalGains,
     campaigns,
     getBalanceUserExternal,
-    externalDeleteDraft
-} = require('../controllers/external.controller');
-
+    externalDeleteDraft,
+} = require('../controllers/external.controller')
+const { verifyAuthExternal } = require('../middleware/passport.middleware')
 const {
     verifySignatureMiddleware,
     idCheckValidation,
     addKitsValidation,
-    externalGainsValidation
+    externalGainsValidation,
 } = require('./../middleware/verifySignature.middleware')
 const multer = require('multer')
 
@@ -49,23 +49,34 @@ const storage = multer.diskStorage({
         cb(null, Date.now() + '-' + file.originalname)
     },
 })
-const upload = multer({ storage: storage });
-
+const upload = multer({ storage: storage })
 
 router.post('/create-user', createUserFromExternalWallet)
 router.get('/campaigns', campaigns)
 router.post('/getBalance', getBalanceUserExternal)
-router.post('/createCampaign', verifySignatureMiddleware, externalSaveCampaign)
+router.post('/createCampaign', verifyAuthExternal, externalSaveCampaign)
 // DONE
-router.get('/socialAccounts', verifySignatureMiddleware , externalSocialAccounts)
-router.post('/campaign/filterLinksExternal', verifySignatureMiddleware , externalGetLinks)
+router.get('/socialAccounts', verifyAuthExternal, externalSocialAccounts)
+router.post(
+    '/campaign/filterLinksExternal',
+    verifyAuthExternal,
+    externalGetLinks
+)
 
-
-router.delete('/deleteDraft/:id', verifySignatureMiddleware, idCheckValidation,externalDeleteDraft)
-router.post('/campaign/getLinksExternal', verifySignatureMiddleware , externalGetOneLinks)
+router.delete(
+    '/deleteDraft/:id',
+    verifyAuthExternal,
+    idCheckValidation,
+    externalDeleteDraft
+)
+router.post(
+    '/campaign/getLinksExternal',
+    verifyAuthExternal,
+    externalGetOneLinks
+)
 
 // DONE
-router.get('/socialAccounts', verifySignatureMiddleware, externalSocialAccounts)
+
 router.get(
     '/verify-token',
     verifySignatureMiddleware,
@@ -159,21 +170,29 @@ router.post(
 
 module.exports = router
 
-router.delete('/RemoveTwitterChannels', verifySignatureMiddleware, externalDeleteTwitterChannels)
+router.delete(
+    '/RemoveTwitterChannels',
+    verifySignatureMiddleware,
+    externalDeleteTwitterChannels
+)
 
+router.delete(
+    '/RemoveTwitterChannel/:id',
+    verifySignatureMiddleware,
+    externalDeleteTwitterChannel
+)
 
-router.delete('/RemoveTwitterChannel/:id', verifySignatureMiddleware, externalDeleteTwitterChannel)
+router.get(
+    '/link/verify/:typeSN/:idUser/:idPost',
+    verifySignatureMiddleware,
+    externalVerifyLink
+)
 
-
-router.get('/link/verify/:typeSN/:idUser/:idPost', verifySignatureMiddleware, externalVerifyLink)
-
-
-router.post('/apply', verifySignatureMiddleware,externalApply)
+router.post('/apply', verifySignatureMiddleware, externalApply)
 
 router.post('/checkHarvest', verifySignatureMiddleware, checkHarvest)
 
 router.post('/externalAnswer', verifySignatureMiddleware, externalAnswer)
 router.post('/externalGains', verifySignatureMiddleware, externalGains)
 
-
-module.exports = router;
+module.exports = router

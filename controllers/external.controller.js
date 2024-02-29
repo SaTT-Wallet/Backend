@@ -13,6 +13,8 @@ const {
     formatTokenBalance,
     getNativeBalance,
 } = require('../web3/wallets')
+
+const { generateAccessTokenExternal } = require('../helpers/utils')
 const { Constants, TronConstant } = require('../conf/const')
 const {
     getInstagramUserName,
@@ -86,22 +88,33 @@ exports.createUserFromExternalWallet = async (req, res) => {
                 walletId: req.body.wallet,
             })
             const savedUser = await user.save()
-
+            const token = generateAccessTokenExternal({ _id: savedUser.UserId })
+            var params = {
+                user: savedUser,
+                token,
+            }
             return makeResponseData(
                 res,
                 200,
                 'User created successfully',
-                savedUser
+                params
             )
         }
         //await externalUpdateStatforUser(userExist.UserId)
-        else
+        else {
+            const token = generateAccessTokenExternal({ _id: userExist.UserId })
+
+            var params = {
+                user: userExist,
+                token,
+            }
             return makeResponseData(
                 res,
                 200,
                 'User signed In successfully',
-                userExist
+                params
             )
+        }
     } catch (err) {
         return makeResponseError(
             res,
@@ -123,10 +136,8 @@ exports.campaignsPictureUploadExternal = multer({
 
 exports.externalSocialAccounts = async (req, res) => {
     try {
-        const user = await UserExternalWallet.findOne({
-            walletId: req.address,
-        })
-
+        const _id = req.user._id
+        const user = await UserExternalWallet.findOne({ _id })
         let UserId = user.UserId
         let networks = {}
         let [channelsGoogle, channelsTwitter] = await Promise.all([
@@ -411,7 +422,7 @@ exports.externalDeleteTwitterChannel = async (req, res) => {
 
 exports.externalGetLinks = async (req, res) => {
     try {
-        const accountData = req.body.wallet_id
+        const accountData = req.user.walletId
         const limit = +req.query.limit || 50
         const page = +req.query.page || 1
         const skip = limit * (page - 1)
@@ -736,7 +747,8 @@ module.exports.externalVerifyLink = async (req, response) => {
 module.exports.externalSaveCampaign = async (req, res) => {
     try {
         let campaign = req.body
-        const user = await UserExternalWallet.findOne({ walletId: req.address })
+        const _id = req.user._id
+        const user = await UserExternalWallet.findOne({ _id })
         campaign.idNode = user.UserId
         campaign.createdAt = Date.now()
         campaign.updatedAt = Date.now()
@@ -1519,7 +1531,7 @@ exports.getBalanceUserExternal = async (req, res) => {
 module.exports.externalDeleteDraft = async (req, res) => {
     try {
         let user = await UserExternalWallet.findOne({
-            walletId: req.address,
+            _id: req.user._id,
         })
         let _id = req.params.id
         let idUser = user.UserId
