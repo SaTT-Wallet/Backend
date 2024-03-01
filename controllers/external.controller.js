@@ -188,9 +188,8 @@ exports.externalSocialAccounts = async (req, res) => {
 
 exports.externalDeleteTiktokChannel = async (req, res) => {
     try {
-        let user = await UserExternalWallet.findOne({
-            walletId: req.address,
-        })
+        const _id = req.user._id
+        const user = await UserExternalWallet.findOne({ _id })
 
         let tiktokProfiles = await TikTokProfile.find({
             userId: user.UserId,
@@ -213,9 +212,8 @@ exports.externalDeleteTiktokChannel = async (req, res) => {
 
 exports.externalDeleteTiktokChannels = async (req, res) => {
     try {
-        let user = await UserExternalWallet.findOne({
-            walletId: req.address,
-        })
+        const _id = req.user._id
+        const user = await UserExternalWallet.findOne({ _id })
 
         let tiktokProfiles = await TikTokProfile.find({
             userId: user.UserId,
@@ -238,12 +236,10 @@ exports.externalDeleteTiktokChannels = async (req, res) => {
 
 exports.externalDeleteGoogleChannel = async (req, res) => {
     try {
-        const UserId = await UserExternalWallet.findOne({
-            walletId: req.address,
-        })
+        const user = await UserExternalWallet.findOne({ _id: req.user._id })
         let _id = req.params.id
         let googleProfile = await GoogleProfile.findOne({ _id }).lean()
-        if (googleProfile?.UserId !== UserId.UserId)
+        if (googleProfile?.UserId !== user.UserId)
             return makeResponseError(res, 401, 'unauthorized')
         else {
             await GoogleProfile.deleteOne({ _id })
@@ -260,9 +256,7 @@ exports.externalDeleteGoogleChannel = async (req, res) => {
 
 exports.externalDeleteGoogleChannels = async (req, res) => {
     try {
-        const user = await UserExternalWallet.findOne({
-            walletId: req.address,
-        })
+        const user = await UserExternalWallet.findOne({ _id: req.user._id })
         const result = await GoogleProfile.deleteMany({
             UserId: user.UserId,
         })
@@ -282,9 +276,7 @@ exports.externalDeleteGoogleChannels = async (req, res) => {
 
 exports.externalDeleteFacebookChannels = async (req, res) => {
     try {
-        const user = await UserExternalWallet.findOne({
-            walletId: req.address,
-        })
+        const user = await UserExternalWallet.findOne({ _id: req.user._id })
         const result = await FbPage.deleteMany({ UserId: user.UserId })
         if (result.deletedCount === 0) {
             return makeResponseError(res, 204, 'No channel found')
@@ -302,9 +294,7 @@ exports.externalDeleteFacebookChannels = async (req, res) => {
 
 exports.externalDeleteFacebookChannel = async (req, res) => {
     try {
-        const user = await UserExternalWallet.findOne({
-            walletId: req.address,
-        })
+        const user = await UserExternalWallet.findOne({ _id: req.user._id })
         let _id = req.params.id
         let facebookProfile = await FbPage.findOne({ _id })
         if (facebookProfile?.UserId !== user.UserId)
@@ -324,9 +314,7 @@ exports.externalDeleteFacebookChannel = async (req, res) => {
 
 exports.externalDeleteLinkedinChannels = async (req, res) => {
     try {
-        const user = await UserExternalWallet.findOne({
-            walletId: req.address,
-        })
+        const user = await UserExternalWallet.findOne({ _id: req.user._id })
         const result = await LinkedinProfile.deleteMany({
             userId: user.UserId,
         })
@@ -346,9 +334,7 @@ exports.externalDeleteLinkedinChannels = async (req, res) => {
 
 exports.externalDeleteLinkedinChannel = async (req, res) => {
     try {
-        const user = await UserExternalWallet.findOne({
-            walletId: req.address,
-        })
+        const user = await UserExternalWallet.findOne({ _id: req.user._id })
         let { organization, linkedinId } = req.params
         let linkedinProfile = await LinkedinProfile.findOne(
             { userId: user.UserId, linkedinId },
@@ -378,9 +364,7 @@ exports.externalDeleteLinkedinChannel = async (req, res) => {
 
 exports.externalDeleteTwitterChannels = async (req, res) => {
     try {
-        const user = await UserExternalWallet.findOne({
-            walletId: req.address,
-        })
+        const user = await UserExternalWallet.findOne({ _id: req.user._id })
         const result = await TwitterProfile.deleteMany({
             UserId: user.UserId,
         })
@@ -400,9 +384,7 @@ exports.externalDeleteTwitterChannels = async (req, res) => {
 
 exports.externalDeleteTwitterChannel = async (req, res) => {
     try {
-        const user = await UserExternalWallet.findOne({
-            walletId: req.address,
-        })
+        const user = await UserExternalWallet.findOne({ _id: req.user._id })
         let _id = req.params.id
         let twitterProfile = await TwitterProfile.findOne({ _id })
         if (twitterProfile?.UserId !== user.UserId)
@@ -563,9 +545,7 @@ exports.externalGetOneLinks = async (req, res) => {
 
 module.exports.externalVerifyLink = async (req, response) => {
     try {
-        const user = await UserExternalWallet.findOne({
-            walletId: req.address,
-        })
+        const user = await UserExternalWallet.findOne({ _id: req.user._id })
         var userId = user.UserId
         var { typeSN, idUser, idPost } = req.params
         let profileLinedin = null
@@ -951,9 +931,7 @@ module.exports.externalAddKits = async (req, res) => {
 }
 module.exports.externalApply = async (req, res) => {
     try {
-        const user = await UserExternalWallet.findOne({
-            walletId: req.address,
-        })
+        const user = await UserExternalWallet.findOne({ _id: req.user._id })
         var id = user.UserId
         // var pass = req.body.pass
         var {

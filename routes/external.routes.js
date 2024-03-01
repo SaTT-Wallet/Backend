@@ -77,83 +77,76 @@ router.post(
 
 // DONE
 
-router.get(
-    '/verify-token',
-    verifySignatureMiddleware,
-    externalVerifyExpiredToken
-)
-router.get('/externalAccount', verifySignatureMiddleware, externalAccount)
+router.get('/verify-token', verifyAuthExternal, externalVerifyExpiredToken)
+router.get('/externalAccount', verifyAuthExternal, externalAccount)
 
 // DONE
 router.delete(
     '/RemoveTiktokChannel/:id',
-    verifySignatureMiddleware,
+    verifyAuthExternal,
     externalDeleteTiktokChannel
 )
 
 router.delete(
     '/RemoveTiktokChannels',
-    verifySignatureMiddleware,
+    verifyAuthExternal,
     externalDeleteTiktokChannels
 )
 
 router.delete(
     '/RemoveGoogleChannel/:id',
-    verifySignatureMiddleware,
+    verifyAuthExternal,
     externalDeleteGoogleChannel
 )
 
 router.delete(
     '/RemoveGoogleChannels',
-    verifySignatureMiddleware,
+    verifyAuthExternal,
     externalDeleteGoogleChannels
 )
 
 router.delete(
     '/RemoveFacebookChannels',
-    verifySignatureMiddleware,
+    verifyAuthExternal,
     externalDeleteFacebookChannels
 )
 
 router.delete(
     '/RemoveFacebookChannel/:id',
-    verifySignatureMiddleware,
+    verifyAuthExternal,
     externalDeleteFacebookChannel
 )
 
 router.delete(
     '/RemoveLinkedInChannels',
-    verifySignatureMiddleware,
+    verifyAuthExternal,
     externalDeleteLinkedinChannels
 )
 
 router.delete(
     '/remove/:linkedinId/linkedInChannel/:organization',
-    verifySignatureMiddleware,
+    verifyAuthExternal,
     externalDeleteLinkedinChannel
 )
 
 router.delete(
     '/RemoveTwitterChannels',
-    verifySignatureMiddleware,
+    verifyAuthExternal,
     externalDeleteTwitterChannels
 )
 
 router.delete(
     '/RemoveTwitterChannel/:id',
-    verifySignatureMiddleware,
+    verifyAuthExternal,
     externalDeleteTwitterChannel
 )
 
 router.get(
     '/link/verify/:typeSN/:idUser/:idPost',
-    verifySignatureMiddleware,
+    verifyAuthExternal,
     externalVerifyLink
 )
 
-// router.put('/externalUpdate/:id', verifySignatureMiddleware, externalUpdate)
-
-// Example:
 router.post(
     '/externalUploadPictureToIPFS/:id',
     idCheckValidation,
@@ -168,27 +161,7 @@ router.post(
     externalAddKits
 )
 
-module.exports = router
-
-router.delete(
-    '/RemoveTwitterChannels',
-    verifySignatureMiddleware,
-    externalDeleteTwitterChannels
-)
-
-router.delete(
-    '/RemoveTwitterChannel/:id',
-    verifySignatureMiddleware,
-    externalDeleteTwitterChannel
-)
-
-router.get(
-    '/link/verify/:typeSN/:idUser/:idPost',
-    verifySignatureMiddleware,
-    externalVerifyLink
-)
-
-router.post('/apply', verifySignatureMiddleware, externalApply)
+router.post('/apply', verifyAuthExternal, externalApply)
 
 router.post('/checkHarvest', verifySignatureMiddleware, checkHarvest)
 
