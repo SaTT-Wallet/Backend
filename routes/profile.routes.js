@@ -659,6 +659,7 @@ router.get(
                 'instagram_basic',
                 'instagram_manage_insights',
                 'pages_read_engagement',
+                'business_management',
             ],
             state,
         })(req, res, next)
@@ -690,6 +691,7 @@ router.get(
     async (req, response) => {
         try {
             redirect = req.query.state.split('|')[1]
+
             let message = req.authInfo.message
             response.redirect(
                 (req.query.state.includes('frontendApp=metamask')

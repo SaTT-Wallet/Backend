@@ -7,6 +7,7 @@ const crypto = require('crypto')
 var rp = require('axios')
 const jwt = require('jsonwebtoken')
 var User = require('../model/user.model')
+var UserExternalWallet = require('../model/userExternalWallet.model.js')
 var FbProfile = require('../model/fbProfile.model')
 var TwitterProfile = require('../model/twitterProfile.model')
 var GoogleProfile = require('../model/googleProfile.model')
@@ -1038,5 +1039,31 @@ module.exports.verifyAuthGetQuote = (req, res, next) => {
         next()
     }
 }
+module.exports.verifyAuthExternal = (req, res, next) => {
+    const authHeader = req.headers['authorization']
+    const token = authHeader?.split(' ')[1]
+    if (!token) {
+        return responseHandler.makeResponseError(res, 401, 'token required')
+    }
+    jwt.verify(token, process.env.REFRESH_TOKEN_SECRET, async (err, user) => {
+        if (err) return res.json(err)
+        const nowInSeconds = Math.floor(Date.now() / 1000)
+        if (nowInSeconds > user.exp) {
+            return responseHandler.makeResponseError(res, 401, 'Expired token')
+        } else {
+            let _id = user?._id ? user?._id : user?._doc._id
+            newUser = await UserExternalWallet.findOne({ UserId: _id })
 
+            if (!newUser) {
+                return responseHandler.makeResponseError(
+                    res,
+                    401,
+                    'Invalid token'
+                )
+            }
+            req.user = newUser
+            next()
+        }
+    })
+}
 module.exports.createUser = createUser
