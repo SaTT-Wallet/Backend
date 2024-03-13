@@ -163,9 +163,9 @@ router.post(
 
 router.post('/apply', verifyAuthExternal, externalApply)
 
-router.post('/checkHarvest', verifySignatureMiddleware, checkHarvest)
+router.post('/checkHarvest', verifyAuthExternal, checkHarvest)
 
-router.post('/externalAnswer', verifySignatureMiddleware, externalAnswer)
-router.post('/externalGains', verifySignatureMiddleware, externalGains)
+router.post('/externalAnswer', verifyAuthExternal, externalAnswer)
+router.post('/externalGains', verifyAuthExternal, externalGains)
 
 module.exports = router
