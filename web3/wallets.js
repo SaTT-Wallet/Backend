@@ -57,6 +57,7 @@ const {
 } = require('../conf/config')
 const { timeout } = require('../helpers/utils')
 const { list } = require('tar')
+const { result } = require('underscore')
 
 exports.unlock = async (req, res) => {
     try {
@@ -570,7 +571,7 @@ const getNetworkByToken = async (idCrypto) => {
             return cache.get('networks').data
         } else {
             const idCryptoArray = idCrypto.split(',')
-            const batchSize = 1300 // Number of cryptos per batch
+            const batchSize = 1000 // Number of cryptos per batch
 
             // Split the idCryptoArray into batches
             const batches = []
@@ -599,6 +600,7 @@ const getNetworkByToken = async (idCrypto) => {
                         const result = await rp.request(options)
                         results.push(result)
                     } catch (err) {
+                        console.log({ err })
                         // Handle the error as needed, e.g., retry or skip
                     }
                 })
@@ -607,6 +609,7 @@ const getNetworkByToken = async (idCrypto) => {
             // Process the results
             const networksContract = results.flatMap((result) =>
                 Object.values(result.data.data).map((innerObj) => ({
+                    id: innerObj.id,
                     symbol: innerObj.symbol,
                     contract_address: innerObj.contract_address,
                     description: innerObj.description,
@@ -620,6 +623,7 @@ const getNetworkByToken = async (idCrypto) => {
             return networksContract
         }
     } catch (err) {
+        console.log({ err })
         throw new Error('Error fetching networks')
     }
 }
@@ -761,20 +765,22 @@ exports.getPrices = async () => {
             var finalMap = {}
 
             const idcrypto = priceMap.map((token) => token.id.toString())
+
             priceMap.forEach((token) => {
-                finalMap[token.symbol] = {
+                finalMap[token.id] = {
                     ...token,
                     networkSupported: '',
                     description: '',
                     urls: '',
                     network: '',
                 }
-                delete finalMap[token.symbol].symbol
+                delete finalMap[token.id].symbol
             })
 
             const networksContract = await getNetworkByToken(idcrypto.join(','))
+
             networksContract.forEach((network) => {
-                if (finalMap[network.symbol]) {
+                if (finalMap[network.id]) {
                     const networkItem = (network.contract_address || []).find(
                         (item) =>
                             [
@@ -785,11 +791,11 @@ exports.getPrices = async () => {
                             ].includes(item?.platform?.name)
                     )
                     const networkname = networkItem?.platform?.name || null
-                    finalMap[network.symbol].network = networkname
-                    finalMap[network.symbol].networkSupported =
+                    finalMap[network.id].network = networkname
+                    finalMap[network.id].networkSupported =
                         network.contract_address
-                    finalMap[network.symbol].description = network.description
-                    finalMap[network.symbol].urls = network.urls
+                    finalMap[network.id].description = network.description
+                    finalMap[network.id].urls = network.urls
                 }
             })
 
@@ -803,6 +809,7 @@ exports.getPrices = async () => {
             }
             prices = { data: finalMap, date: Date.now() }
             cache.put('prices', prices)
+
             return finalMap
         }
     } catch (err) {
