@@ -1059,7 +1059,15 @@ module.exports.externalApply = async (req, res) => {
         prom.shares = socialOracle?.shares || 0
         prom.media_url = media_url || socialOracle?.media_url
 
-        await CampaignLink.updateOne({ _id: insert._id }, { $set: prom })
+        await Promise.allSettled([
+            CampaignLink.updateOne({ _id: insert._id }, { $set: prom }),
+            notificationManager(id, 'apply_campaign', {
+                cmp_name: title,
+                cmp_hash: idCampaign,
+                linkId: insert._id,
+                network: campaignDetails.token.type,
+            }),
+        ])
 
         return responseHandler.makeResponseData(res, 200, 'success', prom)
     } catch (err) {
