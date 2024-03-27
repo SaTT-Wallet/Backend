@@ -669,6 +669,7 @@ exports.getPrices = async () => {
                     rp.request(options2),
                 ])
             } catch (error) {
+                console.log({ error })
                 throw new Error('Error fetching prices')
             }
 
@@ -774,7 +775,6 @@ exports.getPrices = async () => {
                     urls: '',
                     network: '',
                 }
-                delete finalMap[token.id].symbol
             })
 
             const networksContract = await getNetworkByToken(idcrypto.join(','))
@@ -807,10 +807,17 @@ exports.getPrices = async () => {
                     finalMap[token.symbol].decimals = token.platform.decimals
                 }
             }
-            prices = { data: finalMap, date: Date.now() }
+            let newCryptoPrices = {}
+            for (const key in finalMap) {
+                if (finalMap.hasOwnProperty(key)) {
+                    const crypto = finalMap[key]
+                    const symbol = crypto.symbol
+                    newCryptoPrices[symbol] = crypto
+                }
+            }
+            prices = { data: newCryptoPrices, date: Date.now() }
             cache.put('prices', prices)
-
-            return finalMap
+            return newCryptoPrices
         }
     } catch (err) {
         throw new Error('Error fetching prices ')
